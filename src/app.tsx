@@ -1,24 +1,59 @@
+import { useState } from 'react'
+import { randomBytes } from 'crypto'
 import './app.css'
 
-function seq(end: number) {
-  const array = []
-  for (let i = 1; i <= end; i++)
-    array.push(i)
-  return array
+type Zone = 'residential'
+
+interface Square {
+  key: string
+  value: null | Zone
+}
+
+function makeSquare(value = null): Square {
+  return {
+    key: randomBytes(16).toString('hex'),
+    value
+  }
+}
+
+function makeBoard(length: number = 25) {
+  const squares = [...Array(length)].map(makeSquare)
+
+  for (let i = 0; i < Math.floor(length / 2); i++) {
+    const index = Math.floor(Math.random() * length)
+    squares[index] = {
+      ...squares[index],
+      value: 'residential'
+    }
+  }
+
+  return squares
 }
 
 function App() {
+  const [squares, setSquares] = useState(makeBoard())
+
+  const recreateBoard = () => setSquares(makeBoard())
+
   return (
-    <div className="game-container">
-      <div className="board">
-        {seq(25).map(index => (
-          <div className="square-container" key={`square-${index}`}>
-            <div className="square">{index}</div>
-          </div>
-        ))}
+    <section className="container">
+      <div className="game-container">
+        <h1>Combocity</h1>
+        <div className="board">
+          {squares.map(square => (
+            <div className="square-container" key={square.key}>
+              <div className={`square ${square.value}`}></div>
+            </div>
+          ))}
+        </div>
+        <div className="controls">
+          <button onClick={recreateBoard}>
+            Restart
+          </button>
+        </div>
       </div>
-    </div>
-  ) 
+    </section>
+  )
 }
 
 export default App

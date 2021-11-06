@@ -6,10 +6,16 @@ body {
   margin: 20px;
 }
 
-.game-container { 
+.container {
   display: flex;           
   flex-direction: column; 
   align-items: center;  
+}
+
+.game-container { 
+  display: flex;           
+  flex-direction: column; 
+  align-items: flex-start;  
 }
 
 .board {
@@ -36,4 +42,12 @@ body {
   width: 100%; 
   height: 100%;
   border: 1px solid black;
+}
+
+.residential {
+  background: green;
+}
+
+.controls {
+  margin-top: 10px;
 }
