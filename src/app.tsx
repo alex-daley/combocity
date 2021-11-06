@@ -2,16 +2,18 @@ import { useState } from 'react'
 import { randomBytes } from 'crypto'
 import './app.css'
 
-type Zone = 'residential'
-
 interface Square {
   key: string
-  value: null | Zone
+  value: null | 'residential'
+}
+
+function uuid() {
+  return randomBytes(16).toString('hex')
 }
 
 function makeSquare(value = null): Square {
   return {
-    key: randomBytes(16).toString('hex'),
+    key: uuid(),
     value
   }
 }
@@ -30,28 +32,34 @@ function makeBoard(length: number = 25) {
   return squares
 }
 
-function App() {
+function Game() {
   const [squares, setSquares] = useState(makeBoard())
 
   const recreateBoard = () => setSquares(makeBoard())
 
   return (
-    <section className="container">
-      <div className="game-container">
-        <h1>Combocity</h1>
-        <div className="board">
-          {squares.map(square => (
-            <div className="square-container" key={square.key}>
-              <div className={`square ${square.value}`}></div>
-            </div>
-          ))}
-        </div>
-        <div className="controls">
-          <button onClick={recreateBoard}>
-            Restart
-          </button>
-        </div>
+    <div>
+      <h1>Combocity</h1>
+      <div className="board">
+        {squares.map(square => (
+          <div className="square-container" key={square.key}>
+            <div className={`square ${square.value}`}></div>
+          </div>
+        ))}
       </div>
+      <div className="controls">
+        <button onClick={recreateBoard}>
+          Restart
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <section className="game-container">
+      <Game />
     </section>
   )
 }
