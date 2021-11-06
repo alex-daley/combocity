@@ -23,13 +23,13 @@ body {
   background: white;
 }
 
-.cell-container {
+.square-container {
   padding: 4px;
   width: 20%; 
   height: 20%;
 }
 
-.cell {
+.square {
   align-items: center;
   justify-content: center; 
   display: flex;
