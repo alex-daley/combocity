@@ -1,103 +1,94 @@
 import { useState, useEffect, useCallback } from 'react'
-import { randomBytes } from 'crypto'
 import './app.css'
 
-const cols = 5
 const rows = 5
-const numSquares = cols * rows
+const numSquares = rows ** 2
 
-interface Square {
-  key: string
-  value: null | 'residential'
-}
+type Square = null | 'residential'
 
-function uuid() {
-  return randomBytes(16).toString('hex')
-}
+function createBoard(): Square[] {
+  const squares = new Array<Square>(numSquares).fill(null)
 
-function makeSquare(value = null): Square {
-  return {
-    key: uuid(),
-    value
-  }
-}
-
-function makeBoard() {
-  const length = numSquares
-  const squares = [...Array(length)].map(makeSquare)
-
-  for (let i = 0; i <2; i++) {
-    const index = Math.floor(Math.random() * length)
-    squares[index] = {
-      ...squares[index],
-      value: 'residential'
-    }
+  for (let i = 0; i < 4; i++) {
+    const index = Math.floor(Math.random() * numSquares)
+    squares[index] = 'residential'
   }
 
   return squares
 }
 
-function indexAbove(index: number) {
-  const next = index - cols
-  return next < 0 ? index : next
-}
-
-function indexBelow(index: number) {
-  const next = index + cols
-  return next > numSquares ? index : next
-}
-
-function indexLeft(index: number) {
-  return (index % cols) === 0 ? index : index - 1
-}
-
-function indexRight(index: number) {
-  return (index % cols) === cols -1 ? index : index + 1
-}
-
-function shiftBoard(squares: Square[], shift: (index: number) => number) {
-  const moved: number[] = []
-
-  return squares.reduce((newSquares, square, i) => {
-    if (Boolean(square.value)) {
-      const nextIndex = shift(i)
-      if (nextIndex !== i && !moved.includes(i)) {
-        moved.push(nextIndex)
-        newSquares[nextIndex].value = newSquares[i].value 
-        newSquares[i].value = null
+function moveSquares(squares: Square[], keyCode: string) {
+  const result = new Array<Square>(squares.length).fill(null)
+  
+  switch (keyCode) {
+    case 'ArrowUp':  {
+      for (let i = 0; i < squares.length; i++) {        
+        if (!squares[i]) 
+          continue
+        if (i - rows >= 0) {
+          result[i - rows] = squares[i]
+        } 
+        else {
+          result[i] = squares[i]
+        }
       }
-    }
 
-    return newSquares
-  }, [...squares])
+      break
+    }
+    case 'ArrowDown': {
+      for (let i = squares.length - 1; i >= 0; i--) {
+        if (!squares[i])
+          continue
+        if (i + rows < numSquares) {
+          result[i + rows] = squares[i]
+        }
+        else {
+          result[i] = squares[i]
+        }
+      }
+
+      break
+    }
+    case 'ArrowLeft': {
+      for (let i = 0; i < squares.length; i++) {        
+        if (!squares[i]) 
+          continue
+        if ((i % rows) !== 0) {
+          result[i - 1] = squares[i]
+        }
+        else {
+          result[i] = squares[i]
+        }
+      }
+
+      break   
+    }
+    case 'ArrowRight': {
+      for (let i = squares.length - 1; i >= 0; i--) {
+        if (!squares[i]) 
+          continue
+        if ((i % rows) !== rows - 1) {
+          result[i + 1] = squares[i]
+        }
+        else {
+          result[i] = squares[i]
+        }
+      }
+
+      break
+    }
+  }
+
+  return result
 }
 
 function Game() {
-  const [squares, setSquares] = useState(makeBoard())
-  const recreateBoard = () => setSquares(makeBoard())
-
+  const [squares, setSquares] = useState(createBoard())
+  const recreateBoard = () => setSquares(createBoard())
+  
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     if (event.repeat) return
-    
-    let shift
-    switch (event.code) {
-      case 'ArrowUp': 
-        shift = indexAbove; 
-        break
-      case 'ArrowDown': 
-        shift = indexBelow; 
-        break
-      case 'ArrowLeft':
-        shift = indexLeft;
-        break
-      case 'ArrowRight':
-        shift = indexRight
-        break
-      default:
-        return;
-    }
-
-    setSquares(shiftBoard(squares, shift))
+    setSquares(moveSquares(squares, event.code))
   }, [squares])
 
   useEffect(() => {
@@ -110,9 +101,9 @@ function Game() {
     <div>
       <h1>Combocity</h1>
       <div className="board">
-        {squares.map(square => (
-          <div className="square-container" key={square.key}>
-            <div className={`square ${square.value}`}></div>
+        {squares.map((square, i) => (
+          <div className="square-container" key={i}>
+            <div className={`square ${square}`}></div>
           </div>
         ))}
       </div>
