@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import './app.css'
 
 const rows = 5
-const numSquares = rows ** 2
+const numSquares = rows * rows
 
 type Square = null | 'residential'
 
@@ -18,68 +18,63 @@ function createBoard(): Square[] {
 }
 
 function moveSquares(squares: Square[], keyCode: string) {
-  const result = new Array<Square>(squares.length).fill(null)
-  
-  switch (keyCode) {
-    case 'ArrowUp':  {
-      for (let i = 0; i < squares.length; i++) {        
-        if (!squares[i]) 
-          continue
-        if (i - rows >= 0) {
-          result[i - rows] = squares[i]
-        } 
-        else {
-          result[i] = squares[i]
-        }
-      }
+  const emptySquares = () => new Array<Square>(squares.length).fill(null)
 
-      break
+  switch (keyCode) {
+    case 'ArrowUp': {
+      return squares.reduce((result, square, i) => {
+        if (square) {
+          result[indexAbove(i)] = square
+        }
+        return result
+      }, emptySquares())
     }
     case 'ArrowDown': {
-      for (let i = squares.length - 1; i >= 0; i--) {
-        if (!squares[i])
-          continue
-        if (i + rows < numSquares) {
-          result[i + rows] = squares[i]
+      return squares.reduceRight((result, square, i) => {
+        if (square) {
+          result[indexBelow(i)] = square
         }
-        else {
-          result[i] = squares[i]
-        }
-      }
-
-      break
+        return result
+      }, emptySquares())
     }
     case 'ArrowLeft': {
-      for (let i = 0; i < squares.length; i++) {        
-        if (!squares[i]) 
-          continue
-        if ((i % rows) !== 0) {
-          result[i - 1] = squares[i]
+      return squares.reduce((result, square, i) => {
+        if (square) {
+          result[indexLeft(i)] = square
         }
-        else {
-          result[i] = squares[i]
-        }
-      }
-
-      break   
+        return result
+      }, emptySquares())
     }
     case 'ArrowRight': {
-      for (let i = squares.length - 1; i >= 0; i--) {
-        if (!squares[i]) 
-          continue
-        if ((i % rows) !== rows - 1) {
-          result[i + 1] = squares[i]
+      return squares.reduceRight((result, square, i) => {
+        if (square) {
+          result[indexRight(i)] = square
         }
-        else {
-          result[i] = squares[i]
-        }
-      }
-
-      break
+        return result
+      }, emptySquares())
+    }
+    default: {
+      return squares
     }
   }
+}
 
-  return result
+function indexAbove(index: number) {
+  const next = index - rows
+  return next < 0 ? index : next
+}
+
+function indexBelow(index: number) {
+  const next = index + rows
+  return next > numSquares - 1 ? index : next
+}
+
+function indexLeft(index: number) {
+  return (index % rows) === 0 ? index : index - 1
+}
+
+function indexRight(index: number) {
+  return (index % rows) === rows -1 ? index : index + 1
 }
 
 function Game() {
