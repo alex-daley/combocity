@@ -6,9 +6,12 @@ const numSquares = rows * rows
 
 type Square = null | 'residential'
 
-function createBoard(): Square[] {
-  const squares = new Array<Square>(numSquares).fill(null)
+function createBoard() {
+  return new Array<Square>(numSquares).fill(null)
+}
 
+function createAndPopulateBoard() {
+  const squares = createBoard()
   for (let i = 0; i < 4; i++) {
     const index = Math.floor(Math.random() * numSquares)
     squares[index] = 'residential'
@@ -17,74 +20,73 @@ function createBoard(): Square[] {
   return squares
 }
 
-function moveSquares(squares: Square[], keyCode: string) {
-  const emptySquares = () => new Array<Square>(squares.length).fill(null)
+function moveLeft(board: Square[]) {
+  return board.reduce((newBoard, square, i) => {
+    if (square) {
+      const left = (i % rows) === 0 ? i : i - 1
+      newBoard[left] = square
+    }
 
+    return newBoard
+  }, createBoard())
+}
+
+function moveUp(board: Square[]) {
+  return board.reduce((newBoard, square, i) => {
+    if (square) {
+      const up = i - rows < 0 ? i : i - rows
+      newBoard[up] = square
+    }
+
+    return newBoard
+  }, createBoard())
+}
+
+function moveRight(board: Square[]) {
+  return board.reduceRight((newBoard, square, i) => {
+    if (square) {
+      const right = (i % rows) === rows - 1 ? i : i + 1
+      newBoard[right] = square
+    }
+
+    return newBoard
+  }, createBoard())
+}
+
+function moveDown(board: Square[]) {
+  return board.reduceRight((newBoard, square, i) => {
+    if (square) {
+      const down = i + rows > numSquares - 1 ? i :  i + rows 
+      newBoard[down] = square
+    }
+
+    return newBoard
+  }, createBoard())
+}
+
+function move(board: Square[], keyCode: string) {
   switch (keyCode) {
-    case 'ArrowUp': {
-      return squares.reduce((result, square, i) => {
-        if (square) {
-          result[indexAbove(i)] = square
-        }
-        return result
-      }, emptySquares())
-    }
-    case 'ArrowDown': {
-      return squares.reduceRight((result, square, i) => {
-        if (square) {
-          result[indexBelow(i)] = square
-        }
-        return result
-      }, emptySquares())
-    }
-    case 'ArrowLeft': {
-      return squares.reduce((result, square, i) => {
-        if (square) {
-          result[indexLeft(i)] = square
-        }
-        return result
-      }, emptySquares())
-    }
-    case 'ArrowRight': {
-      return squares.reduceRight((result, square, i) => {
-        if (square) {
-          result[indexRight(i)] = square
-        }
-        return result
-      }, emptySquares())
-    }
-    default: {
-      return squares
-    }
+    case 'ArrowLeft': 
+      return moveLeft(board)
+    case 'ArrowUp':
+      return moveUp(board)
+    case 'ArrowRight':
+      return moveRight(board)
+    case 'ArrowDown': 
+      return moveDown(board)
+    default: 
+      return board
   }
 }
 
-function indexAbove(index: number) {
-  const next = index - rows
-  return next < 0 ? index : next
-}
-
-function indexBelow(index: number) {
-  const next = index + rows
-  return next > numSquares - 1 ? index : next
-}
-
-function indexLeft(index: number) {
-  return (index % rows) === 0 ? index : index - 1
-}
-
-function indexRight(index: number) {
-  return (index % rows) === rows -1 ? index : index + 1
-}
-
 function Game() {
-  const [squares, setSquares] = useState(createBoard())
-  const recreateBoard = () => setSquares(createBoard())
+  const [board, setBoard] = useState(createAndPopulateBoard)
+  const remakeBoard = () => setBoard(createAndPopulateBoard)
   
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     if (event.repeat) return
-    setSquares(moveSquares(squares, event.code))
-  }, [squares])
+    setBoard(move(board, event.code))
+  }, [board])
 
   useEffect(() => {
     const eventName = 'keydown'
@@ -96,14 +98,14 @@ function Game() {
     <div>
       <h1>Combocity</h1>
       <div className="board">
-        {squares.map((square, i) => (
+        {board.map((square, i) => (
           <div className="square-container" key={i}>
             <div className={`square ${square}`}></div>
           </div>
         ))}
       </div>
       <div className="controls">
-        <button onClick={recreateBoard}>
+        <button onClick={remakeBoard}>
           Restart
         </button>
       </div>
