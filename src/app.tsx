@@ -79,13 +79,44 @@ function move(board: Square[], keyCode: string) {
   }
 }
 
+function createHistory() {
+  return {
+    steps: [createAndPopulateBoard()],
+    index: 0
+  }
+}
+
 function Game() {
-  const [board, setBoard] = useState(createAndPopulateBoard)
-  const remakeBoard = () => setBoard(createAndPopulateBoard)
-  
+  const [history, setHistory] = useState(createHistory)
+  const board = history.steps[history.index] 
+
+  const reset = () => {
+    setHistory(createHistory)
+  }
+
+  const undo = () => {
+    setHistory(history => ({
+      ...history,
+      index: Math.max(history.index - 1, 0)
+    }))
+  }
+
+  const redo = () => {
+    setHistory(history => ({
+      ...history,
+      index: Math.min(history.index + 1, history.steps.length)
+    }))
+  }
+
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     if (event.repeat) return
-    setBoard(move(board, event.code))
+    const next = move(board, event.code)
+    
+    setHistory(history => ({
+      index: history.index + 1,
+      steps: history.steps.slice(0, history.index + 1).concat([next]) 
+    }))
+    
   }, [board])
 
   useEffect(() => {
@@ -105,8 +136,20 @@ function Game() {
         ))}
       </div>
       <div className="controls">
-        <button onClick={remakeBoard}>
+        <button onClick={reset}>
           Restart
+        </button>
+        <button 
+          onClick={undo} 
+          disabled={history.index < 1}
+        >
+          UNDO
+        </button>
+        <button 
+          onClick={redo} 
+          disabled={history.index === history.steps.length -1}
+        >
+          REDO
         </button>
       </div>
     </div>

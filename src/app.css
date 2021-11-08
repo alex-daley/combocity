@@ -32,6 +32,9 @@ body {
 .controls {
   margin-top: 10px;
 }
+.controls > button {
+  margin-right: 10px;
+}
 .residential {
   background: green;
 }
