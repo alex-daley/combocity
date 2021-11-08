@@ -30,11 +30,21 @@ body {
   border: 1px solid black;
 }
 .controls {
+  display: flex;
   margin-top: 10px;
 }
-.controls > button {
-  margin-right: 10px;
+.rewind-controls {
+  flex-grow: 1;
+  text-align: right;
+}
+.rewind-controls > * {
+  margin: 0px 0px 10px 10px;
 }
 .residential {
   background: green;
+}
+.fadeout {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 3s, opacity 1s ease-in-out 1s;
 }

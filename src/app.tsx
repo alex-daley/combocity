@@ -136,21 +136,29 @@ function Game() {
         ))}
       </div>
       <div className="controls">
-        <button onClick={reset}>
-          Restart
-        </button>
-        <button 
-          onClick={undo} 
-          disabled={history.index < 1}
-        >
-          UNDO
-        </button>
-        <button 
-          onClick={redo} 
-          disabled={history.index === history.steps.length -1}
-        >
-          REDO
-        </button>
+        <div>
+          <button onClick={reset}>
+            Restart
+          </button>
+        </div>
+        <div className="rewind-controls">
+          <button 
+            onClick={undo} 
+            disabled={history.index < 1}
+          >
+            UNDO
+          </button>
+          <button 
+            onClick={redo} 
+            disabled={history.index === history.steps.length -1}
+          >
+            REDO
+          </button>
+          {history.index + 1 != history.steps.length ?
+            <div>{history.index + 1} of {history.steps.length}</div> :
+            <div className="fadeout">All caught up!</div>
+          }
+        </div>
       </div>
     </div>
   )
