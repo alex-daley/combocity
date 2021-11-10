@@ -1,79 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
+import * as gameLogic from './gameLogic'
 import './app.css'
 
-const rows = 5
-const numSquares = rows * rows
-
-type Square = null | 'residential'
-
-function createBoard() {
-  return new Array<Square>(numSquares).fill(null)
-}
-
-function createAndPopulateBoard() {
-  const squares = createBoard()
-  for (let i = 0; i < 4; i++) {
-    const index = Math.floor(Math.random() * numSquares)
-    squares[index] = 'residential'
-  }
-
-  return squares
-}
-
-function moveLeft(board: Square[]) {
-  return board.reduce((newBoard, square, i) => {
-    if (square) {
-      const left = (i % rows) === 0 ? i : i - 1
-      newBoard[left] = square
-    }
-
-    return newBoard
-  }, createBoard())
-}
-
-function moveUp(board: Square[]) {
-  return board.reduce((newBoard, square, i) => {
-    if (square) {
-      const up = i - rows < 0 ? i : i - rows
-      newBoard[up] = square
-    }
-
-    return newBoard
-  }, createBoard())
-}
-
-function moveRight(board: Square[]) {
-  return board.reduceRight((newBoard, square, i) => {
-    if (square) {
-      const right = (i % rows) === rows - 1 ? i : i + 1
-      newBoard[right] = square
-    }
-
-    return newBoard
-  }, createBoard())
-}
-
-function moveDown(board: Square[]) {
-  return board.reduceRight((newBoard, square, i) => {
-    if (square) {
-      const down = i + rows > numSquares - 1 ? i :  i + rows 
-      newBoard[down] = square
-    }
-
-    return newBoard
-  }, createBoard())
-}
+type Square = gameLogic.Square
 
 function move(board: Square[], keyCode: string) {
   switch (keyCode) {
     case 'ArrowLeft': 
-      return moveLeft(board)
+      return gameLogic.moveLeft(board)
     case 'ArrowUp':
-      return moveUp(board)
+      return gameLogic.moveUp(board)
     case 'ArrowRight':
-      return moveRight(board)
+      return gameLogic.moveRight(board)
     case 'ArrowDown': 
-      return moveDown(board)
+      return gameLogic.moveDown(board)
     default: 
       return board
   }
@@ -81,7 +21,7 @@ function move(board: Square[], keyCode: string) {
 
 function createHistory() {
   return {
-    steps: [createAndPopulateBoard()],
+    steps: [gameLogic.createAndPopulateBoard()],
     index: 0
   }
 }
@@ -154,7 +94,7 @@ function Game() {
           >
             REDO
           </button>
-          {history.index + 1 != history.steps.length ?
+          {history.index + 1 !== history.steps.length ?
             <div>{history.index + 1} of {history.steps.length}</div> :
             <div className="fadeout">All caught up!</div>
           }
