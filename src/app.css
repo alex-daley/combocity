@@ -43,6 +43,12 @@ body {
 .residential {
   background: green;
 }
+.commercial {
+  background: blue;
+}
+.industrial {
+  background: orange;
+}
 .fadeout {
   visibility: hidden;
   opacity: 0;
