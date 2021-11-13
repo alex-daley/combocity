@@ -22,68 +22,44 @@ export function createAndPopulateBoard() {
   return squares
 }
 
-// TODO: Reduce repetition
-
 export function moveLeft(board: Square[]) {
-  return board.reduce((newBoard, square, i) => {
-    if (square) {
-      const left = (i % numCols) === 0 ? i : i - 1
-      if (!newBoard[left] || newBoard[left] === square) {
-        newBoard[left] = square
-      }
-      else {
-        newBoard[i] = square
-      }
-    }
-
-    return newBoard
-  }, createBoard())
+  return move(board, i => (i % numCols) === 0 ? i : i - 1)
 }
 
 export function moveUp(board: Square[]) {
-  return board.reduce((newBoard, square, i) => {
-    if (square) {
-      const up = i - numRows < 0 ? i : i - numRows
-      if (!newBoard[up] || newBoard[up] === square) {
-        newBoard[up] = square
-      }
-      else {
-        newBoard[i] = square
-      }
-    }
-
-    return newBoard
-  }, createBoard())
+  return move(board, i => i - numRows < 0 ? i : i - numRows)
 }
 
 export function moveRight(board: Square[]) {
-  return board.reduceRight((newBoard, square, i) => {
-    if (square) {
-      const right = (i % numCols) === numCols - 1 ? i : i + 1
-      if (!newBoard[right] || newBoard[right] === square) {
-        newBoard[right] = square
-      }
-      else {
-        newBoard[i] = square
-      }
-    }
-
-    return newBoard
-  }, createBoard())
+  return move(board, i => (i % numCols) === numCols - 1 ? i : i + 1, true)
 }
 
 export function moveDown(board: Square[]) {
-  return board.reduceRight((newBoard, square, i) => {
-    if (square) {
-      const down = i + numRows > numSquares - 1 ? i :  i + numRows 
-      if (!newBoard[down] || newBoard[down] === square) {
-        newBoard[down] = square
-      }
-      else {
-        newBoard[i] = square
-      }
+  return move(board, i =>  i + numRows > numSquares - 1 ? i :  i + numRows, true)
+}
+
+function move(board: Square[], nextSquareIndex: (index: number) => number, rtl: boolean = false) {
+
+  const reducer = (newBoard: Square[], square: Square, i: number) => {  
+    if (!square) {
+      return newBoard
+    }
+
+    const next = nextSquareIndex(i)
+        
+    if (!newBoard[next] || newBoard[next] === square) {
+      newBoard[next] = square
+    }
+    else {
+      newBoard[i] = square
     }
 
     return newBoard
-  }, createBoard())
+  }
+
+  const newBoard = createBoard()
+
+  return rtl 
+    ? board.reduceRight(reducer, newBoard)
+    : board.reduce(reducer, newBoard)
 }
