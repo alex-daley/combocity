@@ -8,10 +8,10 @@ type MoveFunction = (board: Square[]) => Square[]
 
 function expectMove(move: MoveFunction, startAt: number, endAt: number) {
   const prev = gameLogic.createBoard()
-  prev[startAt] = 'residential'
+  prev[startAt] = new gameLogic.Square('residential')
 
   const curr = move(prev)
-  expect(curr[endAt]).toBe('residential')
+  expect(curr[endAt].zone).toBe('residential')
 }
 
 function expectToNotMove(move: MoveFunction, index: number) {
@@ -20,7 +20,7 @@ function expectToNotMove(move: MoveFunction, index: number) {
 
 test('createBoard creates empty board of expected size', () => {
   expect(gameLogic.createBoard()).toHaveLength(gameLogic.numSquares)
-  gameLogic.createBoard().forEach(square => expect(square).toBeNull())
+  gameLogic.createBoard().forEach(square => expect(square.zone).toBeUndefined())
 })
 
 test('moveLeft moves square left when space is free', () => {

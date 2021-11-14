@@ -71,7 +71,7 @@ function Game() {
       <div className="board">
         {board.map((square, i) => (
           <div className="square-container" key={i}>
-            <div className={`square ${square}`}></div>
+            <div className={`square ${square.zone}`}></div>
           </div>
         ))}
       </div>

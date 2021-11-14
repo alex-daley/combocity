@@ -1,53 +1,60 @@
-export const numRows = 5
-export const numCols = numRows
-export const numSquares = numRows * numCols
+export const numCols = 5
+export const numRows = numCols
+export const numSquares = numCols * numRows
 
-export type Square = null | 'residential' | 'commercial'  | 'industrial'
+export type Zone = 'residential' | 'commercial' | 'industrial'
 
-function randomBoardIndex(board: Square[]): number {
-  const index = Math.floor(Math.random() * numSquares)
-  return Boolean(board[index]) ? randomBoardIndex(board) : index
+export class Square {
+  constructor(
+    public readonly zone?: Zone, 
+    public readonly value: number = 1) {
+  }
 }
 
 export function createBoard() {
-  return new Array<Square>(numSquares).fill(null)
+  return new Array<Square>(numSquares).fill(new Square())
 }
 
 export function createAndPopulateBoard() {
-  const squares = createBoard()
-  for (let i = 0; i < 4; i++) squares[randomBoardIndex(squares)] = 'residential'
-  squares[randomBoardIndex(squares)] = 'commercial'
-  squares[randomBoardIndex(squares)] = 'industrial'
+  const rand = (board: Square[]): number => {
+    const i = Math.floor(Math.random() * numSquares)
+    return board[i].zone ? rand(board) : i
+  }
 
-  return squares
+  const board = createBoard()
+  for (let i = 0; i < 4; i++) board[rand(board)] = new Square('residential')
+  board[rand(board)] = new Square('commercial')
+  board[rand(board)] = new Square('industrial')
+
+  return board
 }
 
 export function moveLeft(board: Square[]) {
-  return move(board, i => (i % numCols) === 0 ? i : i - 1)
+  return moveBoard(board, i => (i % numCols) === 0 ? i : i - 1)
 }
 
 export function moveUp(board: Square[]) {
-  return move(board, i => i - numRows < 0 ? i : i - numRows)
+  return moveBoard(board, i => i - numRows < 0 ? i : i - numRows)
 }
 
 export function moveRight(board: Square[]) {
-  return move(board, i => (i % numCols) === numCols - 1 ? i : i + 1, true)
+  return moveBoard(board, i => (i % numCols) === numCols - 1 ? i : i + 1, true)
 }
 
 export function moveDown(board: Square[]) {
-  return move(board, i =>  i + numRows > numSquares - 1 ? i :  i + numRows, true)
+  return moveBoard(board, i =>  i + numRows > numSquares - 1 ? i :  i + numRows, true)
 }
 
-function move(board: Square[], nextSquareIndex: (index: number) => number, rtl: boolean = false) {
+function moveBoard(board: Square[], move: (i: number) => number, rtl: boolean = false) {
 
   const reducer = (newBoard: Square[], square: Square, i: number) => {  
-    if (!square) {
+    if (!square.zone) {
       return newBoard
     }
 
-    const next = nextSquareIndex(i)
+    const next = move(i)
         
-    if (!newBoard[next] || newBoard[next] === square) {
+    if (!newBoard[next].zone || newBoard[next].zone === square.zone) {
       newBoard[next] = square
     }
     else {
