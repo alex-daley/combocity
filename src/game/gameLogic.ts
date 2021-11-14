@@ -7,7 +7,7 @@ export type Zone = 'residential' | 'commercial' | 'industrial'
 export class Square {
   constructor(
     public readonly zone?: Zone, 
-    public readonly value: number = 1) {
+    public readonly value: number = 0) {
   }
 }
 
@@ -22,9 +22,9 @@ export function createAndPopulateBoard() {
   }
 
   const board = createBoard()
-  for (let i = 0; i < 4; i++) board[rand(board)] = new Square('residential')
-  board[rand(board)] = new Square('commercial')
-  board[rand(board)] = new Square('industrial')
+  for (let i = 0; i < 4; i++) board[rand(board)] = new Square('residential', 2)
+  board[rand(board)] = new Square('commercial', 2)
+  board[rand(board)] = new Square('industrial', 2)
 
   return board
 }
@@ -54,8 +54,11 @@ function moveBoard(board: Square[], move: (i: number) => number, rtl: boolean = 
 
     const next = move(i)
         
-    if (!newBoard[next].zone || newBoard[next].zone === square.zone) {
+    if (!newBoard[next].zone) {
       newBoard[next] = square
+    }
+    else if( newBoard[next].zone === square.zone) {
+      newBoard[next] = {...square, value: square.value + newBoard[next].value}
     }
     else {
       newBoard[i] = square

@@ -23,6 +23,14 @@ body {
   width: 100%; 
   height: 100%;
   border: 1px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.square > p {
+  color: white;
+  font-size: large;
+  font-weight: bold;
 }
 .controls {
   display: flex;
