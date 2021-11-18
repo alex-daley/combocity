@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as gameLogic from './gameLogic'
+import Square from './square'
 import './game.css'
-
-type Square = gameLogic.Square
 
 function move(board: Square[], keyCode: string) {
   switch (keyCode) {

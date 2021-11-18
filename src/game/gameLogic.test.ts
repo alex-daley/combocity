@@ -1,9 +1,10 @@
 import * as game from './gameLogic'
+import Square, { Zone } from './square'
 
-function createBoard(...args: [index: number, zone: game.Zone, value: number][]) {
+function createBoard(...args: [index: number, zone: Zone, value: number][]) {
   const board = game.createBoard()
   args.forEach(([index, zone, value]) => {
-    board[index] = new game.Square(zone, value)
+    board[index] = new Square(zone, value)
   })
 
   return board

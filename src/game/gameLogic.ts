@@ -1,15 +1,8 @@
+import Square from './square'
+
 export const numCols = 5
 export const numRows = numCols
 export const numSquares = numCols * numRows
-
-export type Zone = 'residential' | 'commercial' | 'industrial'
-
-export class Square {
-  constructor(
-    public readonly zone?: Zone, 
-    public readonly value: number = 0) {
-  }
-}
 
 export function createBoard() {
   return new Array<Square>(numSquares).fill(new Square())
