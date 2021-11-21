@@ -3,22 +3,39 @@ import * as gameLogic from './gameLogic'
 import Square from './square'
 import './game.css'
 
+type Direction = 'left' | 'up' | 'right' | 'down'
+
+interface History {
+  steps: Square[][],
+  index: number,
+  direction?: Direction
+}
+
+const animationMs = 200
+
+const keyToDirection: Record<string, Direction> = {
+  'ArrowLeft': 'left',
+  'ArrowUp': 'up',
+  'ArrowRight': 'right',
+  'ArrowDown': 'down'
+}
+
 function move(board: Square[], keyCode: string) {
   switch (keyCode) {
-    case 'ArrowLeft': 
+    case 'ArrowLeft':
       return gameLogic.moveLeft(board)
     case 'ArrowUp':
       return gameLogic.moveUp(board)
     case 'ArrowRight':
       return gameLogic.moveRight(board)
-    case 'ArrowDown': 
+    case 'ArrowDown':
       return gameLogic.moveDown(board)
-    default: 
+    default:
       return board
   }
 }
 
-function createHistory() {
+function createHistory(): History {
   return {
     steps: [gameLogic.createAndPopulateBoard()],
     index: 0
@@ -27,7 +44,8 @@ function createHistory() {
 
 function Game() {
   const [history, setHistory] = useState(createHistory)
-  const board = history.steps[history.index] 
+  const board = history.steps[history.index]
+  const direction = history.direction
 
   const reset = () => {
     setHistory(createHistory)
@@ -50,12 +68,21 @@ function Game() {
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     if (event.repeat) return
     const next = move(board, event.code)
-    
+
     setHistory(history => ({
       index: history.index + 1,
-      steps: history.steps.slice(0, history.index + 1).concat([next]) 
+      steps: history.steps.slice(0, history.index + 1).concat([next]),
+      direction: keyToDirection[event.code]
     }))
-    
+
+    // HACK: To clear animation class names.
+    setTimeout(() => {
+      setHistory(history => ({
+        ...history,
+        direction: undefined
+      }))
+    }, animationMs)
+
   }, [board])
 
   useEffect(() => {
@@ -70,7 +97,7 @@ function Game() {
       <div className="board">
         {board.map((square, i) => (
           <div className="square-container" key={i}>
-            <div className={`square ${square.zone}`}>
+            <div className={`square ${square.zone} ${square.zone ? direction : ''}`}>
               <p>{square.value < 1 ? '' : square.value}</p>
             </div>
           </div>
@@ -83,15 +110,15 @@ function Game() {
           </button>
         </div>
         <div className="rewind-controls">
-          <button 
-            onClick={undo} 
+          <button
+            onClick={undo}
             disabled={history.index < 1}
           >
             UNDO
           </button>
-          <button 
-            onClick={redo} 
-            disabled={history.index === history.steps.length -1}
+          <button
+            onClick={redo}
+            disabled={history.index === history.steps.length - 1}
           >
             REDO
           </button>
