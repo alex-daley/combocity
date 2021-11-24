@@ -85,6 +85,12 @@ function Game() {
 
   }, [board])
 
+  // TODO: Tidy up
+  const hasMoved = (index: number) => {
+    if (history.steps.length < 2) return false
+    return history.steps[history.index][index] !== history.steps[history.index - 1][index]
+  }
+
   useEffect(() => {
     const eventName = 'keydown'
     document.addEventListener(eventName, handleKeyPress)
@@ -97,7 +103,7 @@ function Game() {
       <div className="board">
         {board.map((square, i) => (
           <div className="square-container" key={i}>
-            <div className={`square ${square.zone} ${square.zone ? direction : ''}`}>
+            <div className={`square ${square.zone} ${square.zone && hasMoved(i) ? direction : ''}`}>
               <p>{square.value < 1 ? '' : square.value}</p>
             </div>
           </div>
