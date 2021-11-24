@@ -86,7 +86,7 @@ function Game() {
   }, [board])
 
   const hasMoved = (index: number) => {
-    if (history.steps.length < 2) return false
+    if (history.steps.length < 2 || history.index < 1) return false
     const curr = history.steps[history.index][index]
     const prev = history.steps[history.index - 1][index]
     return curr !== prev
