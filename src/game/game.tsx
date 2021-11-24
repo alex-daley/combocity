@@ -85,10 +85,11 @@ function Game() {
 
   }, [board])
 
-  // TODO: Tidy up
   const hasMoved = (index: number) => {
     if (history.steps.length < 2) return false
-    return history.steps[history.index][index] !== history.steps[history.index - 1][index]
+    const curr = history.steps[history.index][index]
+    const prev = history.steps[history.index - 1][index]
+    return curr !== prev
   }
 
   useEffect(() => {
