@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import * as gameLogic from './gameLogic'
 import Square from './square'
 import './game.css'
+import './animations.css'
 
 type Direction = 'left' | 'up' | 'right' | 'down'
 

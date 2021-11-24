@@ -27,6 +27,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 .square > p {
   color: white;
@@ -57,40 +58,4 @@ body {
   visibility: hidden;
   opacity: 0;
   transition: visibility 0s 3s, opacity 1s ease-in-out 1s;
-}
-@keyframes left {
-  0% { left: 100%; }
-  100% { left: 0%; }
-}
-@keyframes up {
-  0% { top: 100%; }
-  100% { top: 0%; }
-}
-@keyframes right {
-  0% { right: 100%; }
-  100% { right: 0%; }
-}
-@keyframes down {
-  0% { bottom: 100%; }
-  100% { bottom: 0%; }
-}
-.left {
-  position: relative;
-  animation: left;
-  animation-duration: 0.2s;
-}
-.up {
-  position: relative;
-  animation: up;
-  animation-duration: 0.2s;
-}
-.right {
-  position: relative;
-  animation: right;
-  animation-duration: 0.2s;
-}
-.down {
-  position: relative;
-  animation: down;
-  animation-duration: 0.2s;
 }
