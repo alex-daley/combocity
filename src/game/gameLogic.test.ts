@@ -139,3 +139,22 @@ describe('moveDown', () => {
     expect(curr[game.numCols]).toEqual(prev[game.numCols])
   })
 })
+
+describe('countScores', () => {
+  test('sums values by zone', () => {
+    const board = createBoard(
+      [0, 'residential', 2], 
+      [1, 'residential', 2],
+      [4, 'commercial', 4],
+      [7, 'commercial', 4],
+      [9, 'industrial', 3],
+      [8, 'industrial', 4])
+
+    const scores = game.countScores(board)
+    console.log(scores)
+
+    expect(scores['residential']).toBe(4)
+    expect(scores['commercial']).toBe(8)
+    expect(scores['industrial']).toBe(7)
+  })
+})

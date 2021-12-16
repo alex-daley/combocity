@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import * as gameLogic from './gameLogic'
-import Square from './square'
+import Square, { Zone } from './square'
+import ScoreBar from './scoreBar'
+import { colours } from './colours'
 import './game.css'
 import './animations.css'
 
@@ -34,6 +36,11 @@ function move(board: Square[], keyCode: string) {
     default:
       return board
   }
+}
+
+function boardCoveragePercentage(board: Square[], zone: Zone) {
+  const numOfZone = board.filter(square => square.zone === zone).length
+  return (numOfZone / board.length) * 100.0
 }
 
 function createHistory(): History {
@@ -102,38 +109,48 @@ function Game() {
   return (
     <div>
       <h1>Combocity</h1>
-      <div className="board">
-        {board.map((square, i) => (
-          <div className="square-container" key={i}>
-            <div className={`square ${square.zone} ${square.zone && hasMoved(i) ? direction : ''}`}>
-              <p>{square.value < 1 ? '' : square.value}</p>
+
+      <div className="game">
+        <div>
+          <div className="board">
+            {board.map((square, i) => (
+              <div className="square-container" key={i}>
+                <div className={`square ${square.zone} ${square.zone && hasMoved(i) ? direction : ''}`}>
+                  <p>{square.value < 1 ? '' : square.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="controls">
+            <div>
+              <button onClick={reset}>
+                Restart
+              </button>
+            </div>
+            <div className="rewind-controls">
+              <button
+                onClick={undo}
+                disabled={history.index < 1}
+              >
+                UNDO
+              </button>
+              <button
+                onClick={redo}
+                disabled={history.index === history.steps.length - 1}
+              >
+                REDO
+              </button>
+              {history.index + 1 !== history.steps.length ?
+                <div>{history.index + 1} of {history.steps.length}</div> :
+                <div className="fadeout">All caught up!</div>}
             </div>
           </div>
-        ))}
-      </div>
-      <div className="controls">
-        <div>
-          <button onClick={reset}>
-            Restart
-          </button>
         </div>
-        <div className="rewind-controls">
-          <button
-            onClick={undo}
-            disabled={history.index < 1}
-          >
-            UNDO
-          </button>
-          <button
-            onClick={redo}
-            disabled={history.index === history.steps.length - 1}
-          >
-            REDO
-          </button>
-          {history.index + 1 !== history.steps.length ?
-            <div>{history.index + 1} of {history.steps.length}</div> :
-            <div className="fadeout">All caught up!</div>
-          }
+        <div className="score-bars">
+          <ScoreBar maxScore={100} score={boardCoveragePercentage(board, 'residential')} fill={colours.residential} />
+          <ScoreBar maxScore={100} score={boardCoveragePercentage(board, 'commercial')} fill={colours.commercial} />
+          <ScoreBar maxScore={100} score={boardCoveragePercentage(board, 'industrial')} fill={colours.industrial} />
         </div>
       </div>
     </div>

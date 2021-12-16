@@ -1,4 +1,4 @@
-import Square from './square'
+import Square, { Zone } from './square'
 
 export const numCols = 5
 export const numRows = numCols
@@ -20,6 +20,18 @@ export function createAndPopulateBoard() {
   board[rand(board)] = new Square('industrial', 2)
 
   return board
+}
+
+export function countScores(board: Square[]): Record<Zone, number> {
+  const count = (zone: Zone) => board
+    .filter(square => square.zone === zone)
+    .reduce((sum, square) => sum += square.value, 0)
+    
+  return {
+    'residential' : count('residential'),
+    'commercial'  : count('commercial'),
+    'industrial'  : count('industrial')    
+  }
 }
 
 export function moveLeft(board: Square[]) {

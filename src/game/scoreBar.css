@@ -1,0 +1,6 @@
+.score-bar {
+  width: 100px;
+  height: 32px;
+  border: 2px solid black;
+  border-radius: 5px;
+}
