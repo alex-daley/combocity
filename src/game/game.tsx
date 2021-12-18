@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
-import * as gameLogic from './gameLogic'
-import Square, { Zone } from './square'
+import * as React from 'react'
+import * as GameLogic from './gameLogic'
+import Colours from './colours'
 import ScoreBar from './scoreBar'
-import { colours } from './colours'
+import Square, { zones } from './square'
 import './game.css'
 import './animations.css'
 
@@ -14,44 +14,38 @@ interface History {
   direction?: Direction
 }
 
-const animationMs = 200
-
+const animationTimeout = 200
 const keyToDirection: Record<string, Direction> = {
   'ArrowLeft': 'left',
   'ArrowUp': 'up',
   'ArrowRight': 'right',
   'ArrowDown': 'down'
-}
+} as const
 
 function move(board: Square[], keyCode: string) {
   switch (keyCode) {
     case 'ArrowLeft':
-      return gameLogic.moveLeft(board)
+      return GameLogic.moveLeft(board)
     case 'ArrowUp':
-      return gameLogic.moveUp(board)
+      return GameLogic.moveUp(board)
     case 'ArrowRight':
-      return gameLogic.moveRight(board)
+      return GameLogic.moveRight(board)
     case 'ArrowDown':
-      return gameLogic.moveDown(board)
+      return GameLogic.moveDown(board)
     default:
       return board
   }
 }
 
-function boardCoveragePercentage(board: Square[], zone: Zone) {
-  const numOfZone = board.filter(square => square.zone === zone).length
-  return (numOfZone / board.length) * 100.0
-}
-
 function createHistory(): History {
   return {
-    steps: [gameLogic.createAndPopulateBoard()],
+    steps: [GameLogic.createAndPopulateBoard()],
     index: 0
   }
 }
 
 function Game() {
-  const [history, setHistory] = useState(createHistory)
+  const [history, setHistory] = React.useState(createHistory)
   const board = history.steps[history.index]
   const direction = history.direction
 
@@ -60,20 +54,22 @@ function Game() {
   }
 
   const undo = () => {
-    setHistory(history => ({
-      ...history,
-      index: Math.max(history.index - 1, 0)
-    }))
+    setHistory(history => ({ ...history, index: Math.max(history.index - 1, 0) }))
   }
 
   const redo = () => {
-    setHistory(history => ({
-      ...history,
-      index: Math.min(history.index + 1, history.steps.length)
-    }))
+    setHistory(history => ({ ...history, index: Math.min(history.index + 1, history.steps.length) }))
   }
 
-  const handleKeyPress = useCallback((event: KeyboardEvent) => {
+
+  const hasMoved = (index: number) => {
+    if (history.steps.length < 2 || history.index < 1) return false
+    const curr = history.steps[history.index][index]
+    const prev = history.steps[history.index - 1][index]
+    return curr !== prev
+  }
+
+  const handleKeyPress = React.useCallback((event: KeyboardEvent) => {
     if (event.repeat) return
     const next = move(board, event.code)
 
@@ -83,29 +79,18 @@ function Game() {
       direction: keyToDirection[event.code]
     }))
 
-    // HACK: To clear animation class names.
     setTimeout(() => {
-      setHistory(history => ({
-        ...history,
-        direction: undefined
-      }))
-    }, animationMs)
+      setHistory(history => ({ ...history, direction: undefined }))
+    }, animationTimeout)
 
   }, [board])
 
-  const hasMoved = (index: number) => {
-    if (history.steps.length < 2 || history.index < 1) return false
-    const curr = history.steps[history.index][index]
-    const prev = history.steps[history.index - 1][index]
-    return curr !== prev
-  }
-
-  useEffect(() => {
+  React.useEffect(() => {
     const eventName = 'keydown'
     document.addEventListener(eventName, handleKeyPress)
     return () => document.removeEventListener(eventName, handleKeyPress)
   }, [handleKeyPress])
-
+  
   return (
     <div>
       <h1>Combocity</h1>
@@ -129,28 +114,24 @@ function Game() {
               </button>
             </div>
             <div className="rewind-controls">
-              <button
-                onClick={undo}
-                disabled={history.index < 1}
-              >
-                UNDO
-              </button>
-              <button
-                onClick={redo}
-                disabled={history.index === history.steps.length - 1}
-              >
-                REDO
-              </button>
+              <button onClick={undo} disabled={history.index < 1}>UNDO</button>
+              <button onClick={redo} disabled={history.index === history.steps.length - 1}>REDO</button>
               {history.index + 1 !== history.steps.length ?
                 <div>{history.index + 1} of {history.steps.length}</div> :
                 <div className="fadeout">All caught up!</div>}
             </div>
           </div>
         </div>
+
         <div className="score-bars">
-          <ScoreBar maxScore={100} score={boardCoveragePercentage(board, 'residential')} fill={colours.residential} />
-          <ScoreBar maxScore={100} score={boardCoveragePercentage(board, 'commercial')} fill={colours.commercial} />
-          <ScoreBar maxScore={100} score={boardCoveragePercentage(board, 'industrial')} fill={colours.industrial} />
+          {zones.map(zone => (
+            <ScoreBar 
+              key={zone}
+              maxScore={GameLogic.sumScores(board)}
+              score={GameLogic.sumScoresOfZone(board, zone)}
+              fill={Colours[zone]}
+            />
+          ))}
         </div>
       </div>
     </div>

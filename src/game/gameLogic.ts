@@ -22,16 +22,16 @@ export function createAndPopulateBoard() {
   return board
 }
 
-export function countScores(board: Square[]): Record<Zone, number> {
-  const count = (zone: Zone) => board
-    .filter(square => square.zone === zone)
-    .reduce((sum, square) => sum += square.value, 0)
-    
-  return {
-    'residential' : count('residential'),
-    'commercial'  : count('commercial'),
-    'industrial'  : count('industrial')    
-  }
+export function getSquaresByZone(board: Square[], zone: Zone) {
+  return board.filter(square => square.zone === zone)
+}
+
+export function sumScores(board: Square[]) {
+  return board.reduce((sum, square) => square.value + sum, 0)
+}
+
+export function sumScoresOfZone(board: Square[], zone: Zone) {
+  return sumScores(getSquaresByZone(board, zone))
 }
 
 export function moveLeft(board: Square[]) {

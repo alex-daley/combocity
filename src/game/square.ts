@@ -1,4 +1,6 @@
-export type Zone =  'residential' | 'commercial' | 'industrial'
+
+export const zones = ['residential', 'commercial', 'industrial'] as const
+export type Zone = typeof zones[number]
 
 export default class Square {
   constructor(

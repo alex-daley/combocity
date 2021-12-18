@@ -1,10 +1,10 @@
 import * as game from './gameLogic'
-import Square, { Zone } from './square'
+import SquareProps, { Zone } from './square'
 
 function createBoard(...args: [index: number, zone: Zone, value: number][]) {
   const board = game.createBoard()
   args.forEach(([index, zone, value]) => {
-    board[index] = new Square(zone, value)
+    board[index] = new SquareProps(zone, value)
   })
 
   return board
@@ -140,21 +140,56 @@ describe('moveDown', () => {
   })
 })
 
-describe('countScores', () => {
-  test('sums values by zone', () => {
+describe('getSquaresByZone', () => {
+  test('returns squares in board of desired zone', () => {
     const board = createBoard(
-      [0, 'residential', 2], 
-      [1, 'residential', 2],
-      [4, 'commercial', 4],
-      [7, 'commercial', 4],
-      [9, 'industrial', 3],
-      [8, 'industrial', 4])
+      [0, 'residential', 2],
+      [1, 'residential', 4],
+      [3, 'commercial', 6])
+    
+    const residential = game.getSquaresByZone(board, 'residential')
+    expect(residential).toHaveLength(2)
+    expect(residential).toContainEqual({ zone: 'residential', value: 2 })
+    expect(residential).toContainEqual({ zone: 'residential', value: 4 })
+    
+    const commercial = game.getSquaresByZone(board, 'commercial')
+    expect(commercial).toHaveLength(1)
+    expect(commercial).toContainEqual({ zone: 'commercial', value: 6 })
+  })
+})
 
-    const scores = game.countScores(board)
-    console.log(scores)
+describe('sumScores', () => {
+  test('returns sum of values of squares', () => {
+    const board = createBoard(
+      [0, 'residential', 2],
+      [1, 'residential', 4],
+      [2, 'commercial', 4],
+      [3, 'commercial', 6], 
+      [6, 'industrial', 3],
+      [7, 'industrial', 4])
 
-    expect(scores['residential']).toBe(4)
-    expect(scores['commercial']).toBe(8)
-    expect(scores['industrial']).toBe(7)
+    const sum = game.sumScores(board)
+    expect(sum).toBe(23)
+  })
+})
+
+describe('sumScoresOfZone', () => {
+  test('returns sum of values of squares of desired zone', () => {
+    const board = createBoard(
+      [0, 'residential', 2],
+      [1, 'residential', 4],
+      [2, 'commercial', 4],
+      [3, 'commercial', 6], 
+      [6, 'industrial', 3],
+      [7, 'industrial', 4])
+
+    const residential = game.sumScoresOfZone(board, 'residential')
+    expect(residential).toBe(6)
+
+    const commercial = game.sumScoresOfZone(board, 'commercial')
+    expect(commercial).toBe(10)
+
+    const industrial = game.sumScoresOfZone(board, 'industrial')
+    expect(industrial).toBe(7)
   })
 })
