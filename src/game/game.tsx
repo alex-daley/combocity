@@ -11,7 +11,8 @@ type Direction = 'left' | 'up' | 'right' | 'down'
 interface History {
   steps: Square[][],
   index: number,
-  direction?: Direction
+  direction?: Direction,
+  justSpawnedIndex?: number
 }
 
 const animationTimeout = 200
@@ -37,6 +38,19 @@ function move(board: Square[], keyCode: string) {
   }
 }
 
+function addNextSquare(board: Square[]): [Square[], number | undefined] {
+  const index = GameLogic.randomEmptySquare(board)
+  if (!index) {
+    console.log('Game over; board full')
+    return [board, undefined] // Game over
+  }
+
+  const zone = zones[Math.floor(Math.random() * zones.length)]
+  board[index] = new Square(zone, 2)
+
+  return [board, index]
+}
+
 function createHistory(): History {
   return {
     steps: [GameLogic.createAndPopulateBoard()],
@@ -48,6 +62,7 @@ function Game() {
   const [history, setHistory] = React.useState(createHistory)
   const board = history.steps[history.index]
   const direction = history.direction
+  const justSpawnedIndex = history.justSpawnedIndex
 
   const reset = () => {
     setHistory(createHistory)
@@ -61,7 +76,6 @@ function Game() {
     setHistory(history => ({ ...history, index: Math.min(history.index + 1, history.steps.length) }))
   }
 
-
   const hasMoved = (index: number) => {
     if (history.steps.length < 2 || history.index < 1) return false
     const curr = history.steps[history.index][index]
@@ -71,12 +85,13 @@ function Game() {
 
   const handleKeyPress = React.useCallback((event: KeyboardEvent) => {
     if (event.repeat) return
-    const next = move(board, event.code)
+    const [next, justSpawnedIndex] = addNextSquare(move(board, event.code))
 
     setHistory(history => ({
       index: history.index + 1,
       steps: history.steps.slice(0, history.index + 1).concat([next]),
-      direction: keyToDirection[event.code]
+      direction: keyToDirection[event.code],
+      justSpawnedIndex
     }))
 
     setTimeout(() => {
@@ -100,7 +115,7 @@ function Game() {
           <div className="board">
             {board.map((square, i) => (
               <div className="square-container" key={i}>
-                <div className={`square ${square.zone} ${square.zone && hasMoved(i) ? direction : ''}`}>
+                <div className={`square ${square.zone} ${square.zone && hasMoved(i) ? direction : ''} ${i === justSpawnedIndex ? 'just-spawned' : '' }`}>
                   <p>{square.value < 1 ? '' : square.value}</p>
                 </div>
               </div>

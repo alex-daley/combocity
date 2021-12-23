@@ -9,10 +9,7 @@ export function createBoard() {
 }
 
 export function createAndPopulateBoard() {
-  const rand = (board: Square[]): number => {
-    const i = Math.floor(Math.random() * numSquares)
-    return board[i].zone ? rand(board) : i
-  }
+  const rand = (board: Square[]) => randomEmptySquare(board)!
 
   const board = createBoard()
   for (let i = 0; i < 4; i++) board[rand(board)] = new Square('residential', 2)
@@ -32,6 +29,15 @@ export function sumScores(board: Square[]) {
 
 export function sumScoresOfZone(board: Square[], zone: Zone) {
   return sumScores(getSquaresByZone(board, zone))
+}
+
+export function randomEmptySquare(board: Square[], iteration = 0): number | null {
+  if (iteration === board.length) {
+    return null
+  }
+
+  const i = Math.floor(Math.random() * numSquares)
+  return board[i].zone ? randomEmptySquare(board, iteration + 1) : i
 }
 
 export function moveLeft(board: Square[]) {
