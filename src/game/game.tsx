@@ -1,156 +1,237 @@
 import * as React from 'react'
 import * as GameLogic from './gameLogic'
-import Colours from './colours'
-import ScoreBar from './scoreBar'
-import Square, { zones } from './square'
+import SquareInterface, { Zone, zones } from './square'
 import './game.css'
-import './animations.css'
 
-type Direction = 'left' | 'up' | 'right' | 'down'
-
-interface History {
-  steps: Square[][],
-  index: number,
-  direction?: Direction,
-  justSpawnedIndex?: number
+interface GameState {
+  history: SquareInterface[][]
+  historyStepIndex: number
 }
 
-const animationTimeout = 200
-const keyToDirection: Record<string, Direction> = {
-  'ArrowLeft': 'left',
-  'ArrowUp': 'up',
-  'ArrowRight': 'right',
-  'ArrowDown': 'down'
-} as const
-
-function move(board: Square[], keyCode: string) {
-  switch (keyCode) {
-    case 'ArrowLeft':
-      return GameLogic.moveLeft(board)
-    case 'ArrowUp':
-      return GameLogic.moveUp(board)
-    case 'ArrowRight':
-      return GameLogic.moveRight(board)
-    case 'ArrowDown':
-      return GameLogic.moveDown(board)
-    default:
-      return board
-  }
+interface ScoreBarProps {
+  squares: SquareInterface[]
 }
 
-function addNextSquare(board: Square[]): [Square[], number | undefined] {
-  const index = GameLogic.randomEmptySquare(board)
-  if (!index) {
-    console.log('Game over; board full')
-    return [board, undefined] // Game over
-  }
-
-  const zone = zones[Math.floor(Math.random() * zones.length)]
-  board[index] = new Square(zone, 2)
-
-  return [board, index]
+interface BoardProps {
+  squares: SquareInterface[]
 }
 
-function createHistory(): History {
+interface PlaybackControlsProps {
+  onUndo: () => void
+  onRedo: () => void
+  onRestart: () => void
+  state: GameState
+}
+
+interface ProgressProps {
+  colour: string
+  percentage: number
+  value?: number
+}
+
+interface ButtonProps {
+  onClick: () => void
+  children: React.ReactNode
+  disabled?: boolean
+}
+
+const moveBindings: Record<string, (squares: SquareInterface[]) => SquareInterface[]> = {
+  'ArrowLeft': GameLogic.moveLeft,
+  'ArrowUp': GameLogic.moveUp,
+  'ArrowRight': GameLogic.moveRight,
+  'ArrowDown': GameLogic.moveDown
+}
+
+function initalGameState(): GameState {
   return {
-    steps: [GameLogic.createAndPopulateBoard()],
-    index: 0
+    history: [GameLogic.createAndPopulateBoard()],
+    historyStepIndex: 0
   }
 }
 
-function Game() {
-  const [history, setHistory] = React.useState(createHistory)
-  const board = history.steps[history.index]
-  const direction = history.direction
-  const justSpawnedIndex = history.justSpawnedIndex
+function currentBoard({ history, historyStepIndex }: GameState) {
+  return history[historyStepIndex]
+}
 
-  const reset = () => {
-    setHistory(createHistory)
+function undoHistoryStep(state: GameState) {
+  const historyStepIndex = Math.max(state.historyStepIndex - 1, 0)
+  return { ...state, historyStepIndex }
+}
+
+function redoHistoryStep(state: GameState) {
+  const historyStepIndex = Math.min(state.historyStepIndex + 1, state.history.length)
+  return { ...state, historyStepIndex }
+}
+
+function isMoveKey(keyCode: string) {
+  return Boolean(moveBindings[keyCode])
+}
+
+function move(board: SquareInterface[], keyCode: string) {
+  if (!isMoveKey(keyCode)) return board
+  return moveBindings[keyCode](board)
+}
+
+function addNewSquare(board: SquareInterface[]) {
+  const index = GameLogic.randomEmptySquare(board)
+  if (!index) return board 
+
+  const zone =  zones[Math.floor(Math.random() * zones.length)]
+  board[index] = { zone, value: 2 }
+  return board
+}
+
+function classNames(...names: (string | undefined)[]) {
+  const truthy = names.filter(name => Boolean(name))
+  if (truthy.length === 0) return ''
+  return truthy.splice(1).reduce((composite, className) => {
+    return `${composite} ${className}`
+  }, truthy[0])
+}
+
+function Board({ squares }: BoardProps) {
+  const getSquareClass = (square: SquareInterface) => {
+    return classNames('square', square.zone)
   }
 
-  const undo = () => {
-    setHistory(history => ({ ...history, index: Math.max(history.index - 1, 0) }))
+  return (
+    <div className="board">
+      {squares.map((square, i) => (
+        <div
+          className="square-container"
+          key={i}
+        >
+          <div className={getSquareClass(square)}>
+            {square.value ? <p>{square.value}</p> : <></>}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function PlaybackControls(props: PlaybackControlsProps) {
+  const Button = (props: ButtonProps) => (
+    <button className="button" {...props} >
+      {props.children}
+    </button>
+  )
+
+  const { state: { history, historyStepIndex } } = props
+  const undoDisabled = historyStepIndex < 1
+  const redoDisabled = historyStepIndex === (history.length - 1)
+
+  return (
+    <div className="playback-controls" >
+      <div>
+        <Button
+          onClick={props.onRestart}
+        >
+          Restart
+        </Button>
+      </div>
+      <div className="undo-redo">
+        <Button
+          onClick={props.onUndo}
+          disabled={undoDisabled}
+        >
+          Undo
+        </Button>
+        <Button
+          onClick={props.onRedo}
+          disabled={redoDisabled}
+        >
+          Redo
+        </Button>
+        {historyStepIndex + 1 !== history.length ?
+          <div>{historyStepIndex + 1} of {history.length}</div> :
+          <div className="fadeout">All caught up!</div>}
+      </div>
+    </div>
+  )
+}
+
+function Progress(props: ProgressProps) {
+  const style = {
+    backgroundColor: props.colour,
+    width: `${props.percentage}%`,
+    height: '100%'
   }
 
-  const redo = () => {
-    setHistory(history => ({ ...history, index: Math.min(history.index + 1, history.steps.length) }))
+  return (
+    <div className="progress-container">
+      <div className="progress-text">
+        {props.value}
+      </div>
+      <div className="progress">
+        <div style={style} />
+      </div>
+    </div>
+  )
+}
+
+function ScoreBars({ squares }: ScoreBarProps) {
+  const sum = GameLogic.sumScores(squares)
+
+  const scorePercentage = (value: number) => (value / sum) * 100
+  const scorePercentageZone = (zone: Zone) => {
+    const value = GameLogic.sumScoresOfZone(squares, zone)
+    return { value, percentage: scorePercentage(value) }
   }
 
-  const hasMoved = (index: number) => {
-    if (history.steps.length < 2 || history.index < 1) return false
-    const curr = history.steps[history.index][index]
-    const prev = history.steps[history.index - 1][index]
-    return curr !== prev
-  }
+  return (
+    <div className="score-bars" >
+      <Progress
+        colour="#8DFF00FF"
+        {...scorePercentageZone('residential')}
+      />
+      <Progress
+        colour="#14E6F5FF"
+        {...scorePercentageZone('commercial')}
+      />
+      <Progress
+        colour="#FF9000FF"
+        {...scorePercentageZone('industrial')}
+      />
+    </div>
+  )
+}
+
+export default function Game() {
+  const [state, setState] = React.useState(initalGameState)
+  const squares = currentBoard(state)
+
+  const undo = () => setState(undoHistoryStep(state))
+  const redo = () => setState(redoHistoryStep(state))
+  const restart = () => setState(initalGameState())
 
   const handleKeyPress = React.useCallback((event: KeyboardEvent) => {
-    if (event.repeat) return
-    const [next, justSpawnedIndex] = addNextSquare(move(board, event.code))
+    if (event.repeat || !isMoveKey(event.code)) return
+    const next = addNewSquare(move(squares, event.code))
 
-    setHistory(history => ({
-      index: history.index + 1,
-      steps: history.steps.slice(0, history.index + 1).concat([next]),
-      direction: keyToDirection[event.code],
-      justSpawnedIndex
+    setState(state => ({
+      historyStepIndex: state.historyStepIndex + 1,
+      history: state.history.slice(0, state.historyStepIndex + 1).concat([next])
     }))
-
-    setTimeout(() => {
-      setHistory(history => ({ ...history, direction: undefined }))
-    }, animationTimeout)
-
-  }, [board])
+  }, [squares])
 
   React.useEffect(() => {
     const eventName = 'keydown'
     document.addEventListener(eventName, handleKeyPress)
     return () => document.removeEventListener(eventName, handleKeyPress)
   }, [handleKeyPress])
-  
+
   return (
-    <div>
-      <h1>Combocity</h1>
-
-      <div className="game">
-        <div>
-          <div className="board">
-            {board.map((square, i) => (
-              <div className="square-container" key={i}>
-                <div className={`square ${square.zone} ${square.zone && hasMoved(i) ? direction : ''} ${i === justSpawnedIndex ? 'just-spawned' : '' }`}>
-                  <p>{square.value < 1 ? '' : square.value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="controls">
-            <div>
-              <button onClick={reset}>
-                Restart
-              </button>
-            </div>
-            <div className="rewind-controls">
-              <button onClick={undo} disabled={history.index < 1}>UNDO</button>
-              <button onClick={redo} disabled={history.index === history.steps.length - 1}>REDO</button>
-              {history.index + 1 !== history.steps.length ?
-                <div>{history.index + 1} of {history.steps.length}</div> :
-                <div className="fadeout">All caught up!</div>}
-            </div>
-          </div>
-        </div>
-
-        <div className="score-bars">
-          {zones.map(zone => (
-            <ScoreBar 
-              key={zone}
-              maxScore={GameLogic.sumScores(board)}
-              score={GameLogic.sumScoresOfZone(board, zone)}
-              fill={Colours[zone]}
-            />
-          ))}
-        </div>
-      </div>
+    <div className="game-root">
+      <h1>Multiplicity</h1>
+      <ScoreBars squares={squares} />
+      <Board squares={squares} />
+      <PlaybackControls
+        onUndo={undo}
+        onRedo={redo}
+        onRestart={restart}
+        state={state}
+      />
     </div>
   )
 }
-
-export default Game

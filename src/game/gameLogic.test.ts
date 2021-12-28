@@ -1,10 +1,10 @@
 import * as game from './gameLogic'
-import SquareProps, { Zone } from './square'
+import Square, { Zone } from './square'
 
 function createBoard(...args: [index: number, zone: Zone, value: number][]) {
   const board = game.createBoard()
   args.forEach(([index, zone, value]) => {
-    board[index] = new SquareProps(zone, value)
+    board[index] = new Square(zone, value)
   })
 
   return board
